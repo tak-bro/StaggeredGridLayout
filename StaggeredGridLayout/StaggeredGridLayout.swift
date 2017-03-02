@@ -62,35 +62,35 @@ class StaggeredGridLayout: UICollectionViewLayout {
     }
 
     override func prepare() {
-        // [1] レイアウト情報をキャッシュ済みの場合は処理を終了する
+        // [1] When the layout information has already been cached, the processing is terminated
         if self.cachedAttributes.count > 0 {
             return;
         }
         
         var column : Int = 0
 
-        // [2] セルの幅を計算する
+        // [2] Calculate Cell width
         let totalHorizontalMargin : CGFloat = (kCellMargin * (CGFloat(kNumberOfColumns - 1)))
         let cellWidth : CGFloat = (self.contentWidth() - totalHorizontalMargin) / CGFloat(kNumberOfColumns)
         
-        // [3] 「セルの原点 x」の配列を計算する
+        // [3] Calculate the array of "Cell origin x"
         var cellOriginXList : Array<CGFloat> = Array<CGFloat>()
         for i in 0..<kNumberOfColumns {
             let originX : CGFloat  = CGFloat(i) * (cellWidth + kCellMargin)
             cellOriginXList.append(originX)
         }
 
-        // [4] カラムごとの「現在計算対象にしているセルの原点 y」を格納した配列を計算する
+        // [4] Calculate an array that stores "the origin y of the cell currently being calculated" for each column
         var currentCellOriginYList : Array<CGFloat> = Array<CGFloat>()
         for _ in 0..<kNumberOfColumns {
             currentCellOriginYList.append(0.0)
         }
 
-        // [5] 各セルのサイズ・原点座標を計算する
+        // [5] Calculate size and origin coordinates of each cell
         for item in 0..<self.collectionView!.numberOfItems(inSection: 0) {
             let indexPath : IndexPath = IndexPath(row: item, section: 0)
 
-            // [6] セルの写真部分・ボディ部分のそれぞれの高さを取得する
+            // [6] Acquire the height of each part of the image and the body of the cell
             let imageHeight : CGFloat  = self.delegate.heightForImageAtIndexPath(
                 self.collectionView!, indexPath: indexPath, width: cellWidth)
             
@@ -98,25 +98,27 @@ class StaggeredGridLayout: UICollectionViewLayout {
                 self.collectionView!, indexPath: indexPath, width: cellWidth)
             let cellHeight : CGFloat  = imageHeight + bodyHeight;
 
-            // [7] セルの frame を作成する
+            // [7] Create cell frame
             let cellFrame : CGRect = CGRect(x: cellOriginXList[column],
                 y: currentCellOriginYList[column],
                 width: cellWidth,
                 height: cellHeight);
 
-            // [8] StaggeredGridLayoutAttributes オブジェクトを作成して、cachedAttributes プロパティに格納する
+            // [8] StaggeredGridLayoutAttributes
+            // Create an object and store it in the cachedAttributes property
             let attributes : StaggeredGridLayoutAttributes = StaggeredGridLayoutAttributes(forCellWith: indexPath)
             attributes.imageHeight = imageHeight;
             attributes.frame = cellFrame;
             self.cachedAttributes.append(attributes)
 
-            // [9] UICollectionView のコンテンツの高さを計算して contentHeight プロパティに格納する
+            // [9] UICollectionView 
+            // Calculate the height of the content and store it in the contentHeight property
             self.contentHeight = max(self.contentHeight, cellFrame.maxY);
 
-            // [10] 次のセルの原点 y を計算する
+            // [10] Calculate the origin y of the next cell
             currentCellOriginYList[column] = currentCellOriginYList[column] + cellHeight + kCellMargin
 
-            // [11] 次のカラムを決める
+            // [11] Decide the next column
             var nextColumn : Int = 0
             var minOriginY : CGFloat = CGFloat.greatestFiniteMagnitude
             let nsCurrentCellOriginYList : NSArray = NSArray(array: currentCellOriginYList)
